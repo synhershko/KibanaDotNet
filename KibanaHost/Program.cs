@@ -4,6 +4,8 @@ using System.Net;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Nancy.Hosting.Self;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace KibanaDotNet.KibanaHost
 {
@@ -33,20 +35,8 @@ namespace KibanaDotNet.KibanaHost
                 using (var fs = new FileStream(kibanaFilename + ".zip.tmp", FileMode.Open, FileAccess.Read))
                 using (var zf = new ZipFile(fs))
                 {
-                    var ze = zf.GetEntry(kibanaFilename + @"/lib/kibana.jar");
-                    if (ze == null)
-                    {
-                        throw new ArgumentException(kibanaFilename + @"\lib\kibana.jar wasn't found");
-                    }
-
-                    using (var s = zf.GetInputStream(ze))
-                    {
-                        using (var streamWriter = File.Create("kibana-statics.zip"))
-                        {
-                            var buffer = new byte[4096];
-                            StreamUtils.Copy(s, streamWriter, buffer);
-                        }
-                    }
+                    ExtractFileFromOpenZipFile(zf, kibanaFilename + "/lib/kibana.jar", "kibana-statics.zip");
+                    ExtractFileFromOpenZipFile(zf, kibanaFilename + "/config/kibana.yml", "kibana.yml");
                 }
 
                 File.Delete(kibanaFilename + ".zip.tmp");
@@ -57,6 +47,24 @@ namespace KibanaDotNet.KibanaHost
             StartKibanaHost();
         }
 
+        private static void ExtractFileFromOpenZipFile(ZipFile zf, string zipFilePath, string extractTo)
+        {
+            var ze = zf.GetEntry(zipFilePath);
+            if (ze == null)
+            {
+                throw new ArgumentException(zipFilePath + " wasn't found");
+            }
+
+            using (var s = zf.GetInputStream(ze))
+            {
+                using (var streamWriter = File.Create(extractTo))
+                {
+                    var buffer = new byte[4096];
+                    StreamUtils.Copy(s, streamWriter, buffer);
+                }
+            }
+        }
+
         private static void StartKibanaHost()
         {
             if (string.IsNullOrWhiteSpace(Bootstrapper.ZipFilePath) || !File.Exists(Bootstrapper.ZipFilePath))
@@ -65,14 +73,30 @@ namespace KibanaDotNet.KibanaHost
                 return;
             }
 
-            var uri =
-                new Uri("http://localhost:5602");
+            if (File.Exists("kibana.yml"))
+            {
+                var configText = File.ReadAllText("kibana.yml");  // yes, I'm lazy
+                configText = configText.Replace("bundledPluginIds:", "bundled_plugin_ids:"); // yes, this is hacky
+                var deserializer = new Deserializer(namingConvention: new UnderscoredNamingConvention());
+                Config.Instance = deserializer.Deserialize<Config>(new StringReader(configText));
+            }
+
+            Uri uri;
+            if (Config.Instance.Host.Equals("0.0.0.0"))
+                uri = new Uri(string.Format("http://localhost:{0}", Config.Instance.Port));
+            else
+            {
+                uri = new Uri(string.Format("http://{0}:{1}", Config.Instance.Host, Config.Instance.Port));
+            }
 
             using (
                 var host =
                     new NancyHost(
-                        new HostConfiguration { AllowChunkedEncoding = false,
-                            UrlReservations = new UrlReservations { CreateAutomatically = true } }, uri)
+                        new HostConfiguration
+                        {
+                            AllowChunkedEncoding = false,
+                            UrlReservations = new UrlReservations {CreateAutomatically = true}
+                        }, uri)
                 )
             {
                 host.Start();

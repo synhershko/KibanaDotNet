@@ -16,25 +16,14 @@ namespace KibanaDotNet.KibanaHost
             {
                 return Response.AsJson(new
                 {
-                    port = 5062,
-                    host = "0.0.0.0",
-                    kibana_index = ".kibana",
-                    default_app_id = "discover",
-                    request_timeout = 60,
-                    shard_timeout = 30000,
-                    verify_ssl = true,
-                    bundledPluginIds = new[] // TODO load dynamically
-                    {
-                        "plugins/dashboard/index",
-                        "plugins/discover/index",
-                        "plugins/doc/index",
-                        "plugins/kibana/index",
-                        "plugins/metric_vis/index",
-                        "plugins/settings/index",
-                        "plugins/table_vis/index",
-                        "plugins/vis_types/index",
-                        "plugins/visualize/index"
-                    },
+                    port = Config.Instance.Port,
+                    host = Config.Instance.Host,
+                    kibana_index = Config.Instance.KibanaIndex,
+                    default_app_id = Config.Instance.DefaultAppId,
+                    request_timeout = Config.Instance.RequestTimeout,
+                    shard_timeout = Config.Instance.ShardTimeout,
+                    verify_ssl = Config.Instance.VerifySsl,
+                    bundledPluginIds = Config.Instance.BundledPluginIds,
                     plugins = new[] // TODO load dynamically
                     {
                         "plugins/dashboard/index",
