@@ -22,12 +22,17 @@ namespace KibanaDotNet.KibanaHost
             {
                 var reqPath = ctx.Request.Path;
 
+                Console.WriteLine("{0}\t{1}", ctx.Request.Method, reqPath + ctx.Request.Url.Query);
+
                 if (reqPath.Equals("/"))
                 {
                     reqPath = "/index.html";
                 }
 
-                reqPath = KibanaFileName + reqPath.Replace('\\', '/');
+                if (reqPath.Equals("/config") || reqPath.StartsWith("/elasticsearch"))
+                    return null;
+
+                reqPath = "kibana/public" + reqPath.Replace('\\', '/');
 
                 var fileName = Path.GetFullPath(Path.Combine(root, reqPath));
                 if (File.Exists(fileName))
@@ -49,9 +54,9 @@ namespace KibanaDotNet.KibanaHost
             {
                 if (string.IsNullOrEmpty(_zipFilePath))
                 {
-                    var fullZipPath = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "kibana-*.zip").FirstOrDefault();
+                    var fullZipPath = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "kibana-statics.zip").FirstOrDefault();
                     if ((fullZipPath == null || File.Exists(fullZipPath) == false) && Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin")))
-                        fullZipPath = Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin"), "kibana-*.zip").FirstOrDefault();
+                        fullZipPath = Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin"), "kibana-statics.zip").FirstOrDefault();
                     if (fullZipPath != null)
                     {
                         KibanaFileName = new FileInfo(fullZipPath).Name.Replace(".zip", "");
