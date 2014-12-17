@@ -55,7 +55,7 @@ namespace KibanaDotNet.KibanaHost
 
         private async Task<Response> ElasticsearchProxy(string req)
         {
-            var client = new RestClient("http://localhost:9200/");
+            var client = new RestClient(Config.Instance.Elasticsearch);
             var method = TranslateRestMethod(Request.Method);
             var request = new RestRequest(req + Request.Url.Query, method) { RequestFormat = DataFormat.Json };            
             if (method == Method.POST || method == Method.PUT)
