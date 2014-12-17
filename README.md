@@ -13,7 +13,9 @@ Making running and hosting of Kibana on Windows platform easier
 	3. Make sure you have JAVA_HOME properly set up
 	4. Run `elasticsearch\bin\elasticsearch.bat`
 2. Compile and run KibanaHost
-3. Go to http://localhost:5602/ to view Kibana
+3. Go to http://localhost:5601/ to view Kibana
+
+On first launch KibanaHost will download the latest version of Kibana 4 automatically. You can change various configurations by editing the kibana.yml which will appear next to your application executable. Don't forget to restart, tho.
 
 ## Azure instructions
 
