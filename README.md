@@ -5,7 +5,7 @@ Making running and hosting of Kibana on Windows platform easier
 
 ## How to run
 
-1. Have Elasticsearch running
+1. Have Elasticsearch running. To run locally:
 	1. Download from http://elasticsearch.org/download
 	2. Go edit config\elasticsearch.yml and edit:
 		* `cluster.name` to something non-default. Your GitHub username will do.
@@ -13,4 +13,8 @@ Making running and hosting of Kibana on Windows platform easier
 	3. Make sure you have JAVA_HOME properly set up
 	4. Run `elasticsearch\bin\elasticsearch.bat`
 2. Compile and run KibanaHost
-3. Go to http://localhost:3579/ to view Kibana
+3. Go to http://localhost:5602/ to view Kibana
+
+## Azure instructions
+
+TBD
