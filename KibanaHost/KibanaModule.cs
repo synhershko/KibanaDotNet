@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Nancy;
+using Nancy.Security;
 using RestSharp;
 using RestSharp.Extensions;
 using HttpStatusCode = Nancy.HttpStatusCode;
@@ -12,6 +13,13 @@ namespace KibanaHost
     {
         public KibanaModule()
         {
+            if (!string.IsNullOrWhiteSpace(Config.Instance.AzureAdAudience) &&
+                !string.IsNullOrWhiteSpace(Config.Instance.AzureAdTenant))
+            {
+                this.RequiresMSOwinAuthentication();
+                // We now have var claimsPrincipal = Context.GetMSOwinUser(); available to us
+            }
+
             Get["/config"] = _ =>
             {
                 return Response.AsJson(new

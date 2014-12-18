@@ -25,5 +25,8 @@
         public int ShardTimeout { get; set; }
         public string[] BundledPluginIds { get; set; }
         public bool VerifySsl { get; set; } // TODO
+
+        public string AzureAdAudience { get; set; }
+        public string AzureAdTenant { get; set; }
     }
 }
