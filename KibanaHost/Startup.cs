@@ -8,7 +8,6 @@ namespace KibanaHost
         public void Configuration(IAppBuilder app)
         {
             app.UseNancy();
-            app.UseStageMarker(PipelineStage.MapHandler);
         }
     }
 }
