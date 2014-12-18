@@ -6,7 +6,7 @@ using System.Reflection;
 using ICSharpCode.SharpZipLib.Zip;
 using Nancy;
 
-namespace KibanaDotNet.KibanaHost
+namespace KibanaHost
 {
     public class SpecialEmbeddedFileResponse : Response
     {

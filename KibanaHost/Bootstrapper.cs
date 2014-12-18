@@ -5,7 +5,7 @@ using Nancy;
 using Nancy.Conventions;
 using Nancy.Responses;
 
-namespace KibanaDotNet.KibanaHost
+namespace KibanaHost
 {
     public class Bootstrapper : DefaultNancyBootstrapper
     {
@@ -22,7 +22,7 @@ namespace KibanaDotNet.KibanaHost
             {
                 var reqPath = ctx.Request.Path;
 
-                Console.WriteLine("{0}\t{1}", ctx.Request.Method, reqPath + ctx.Request.Url.Query);
+                Console.WriteLine("{0}\t{1}", ctx.Request.Method, reqPath + "?" + ctx.Request.Url.Query);
 
                 if (reqPath.Equals("/"))
                 {

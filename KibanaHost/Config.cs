@@ -1,4 +1,4 @@
-﻿namespace KibanaDotNet.KibanaHost
+﻿namespace KibanaHost
 {
     class Config
     {

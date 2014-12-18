@@ -6,7 +6,7 @@ using RestSharp;
 using RestSharp.Extensions;
 using HttpStatusCode = Nancy.HttpStatusCode;
 
-namespace KibanaDotNet.KibanaHost
+namespace KibanaHost
 {
     public class KibanaModule : NancyModule
     {
@@ -57,7 +57,7 @@ namespace KibanaDotNet.KibanaHost
         {
             var client = new RestClient(Config.Instance.Elasticsearch);
             var method = TranslateRestMethod(Request.Method);
-            var request = new RestRequest(req + Request.Url.Query, method) { RequestFormat = DataFormat.Json };            
+            var request = new RestRequest(req + "?" + Request.Url.Query, method) { RequestFormat = DataFormat.Json };            
             if (method == Method.POST || method == Method.PUT)
                 request.AddParameter("text/json", Request.Body.ReadAsBytes(), ParameterType.RequestBody);
 

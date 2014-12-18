@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Security.Principal;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
-using Nancy.Hosting.Self;
+using Microsoft.Owin.Hosting;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace KibanaDotNet.KibanaHost
+namespace KibanaHost
 {
     class Program
     {
@@ -40,7 +42,7 @@ namespace KibanaDotNet.KibanaHost
                 }
 
                 File.Delete(kibanaFilename + ".zip.tmp");
-                
+
                 Console.WriteLine("Kibana downloaded successfully");
                 Console.WriteLine();
             }
@@ -81,29 +83,78 @@ namespace KibanaDotNet.KibanaHost
                 Config.Instance = deserializer.Deserialize<Config>(new StringReader(configText));
             }
 
-            Uri uri;
+            string uri;
             if (Config.Instance.Host.Equals("0.0.0.0"))
-                uri = new Uri(string.Format("http://localhost:{0}", Config.Instance.Port));
+                uri = string.Format("http://localhost:{0}/", Config.Instance.Port);
             else
+                uri = string.Format("http://{0}:{1}/", Config.Instance.Host, Config.Instance.Port);
+
+            run_server:
+            try
             {
-                uri = new Uri(string.Format("http://{0}:{1}", Config.Instance.Host, Config.Instance.Port));
+                using (WebApp.Start<Startup>(uri))
+                {
+                    var defaultColor = Console.ForegroundColor;
+
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Kibana is now available on " + uri);
+                    Console.ForegroundColor = defaultColor;
+                    Console.WriteLine("Press any key to close the host.");
+
+                    Console.ReadLine();
+                }
+            }
+            catch (HttpListenerException e)
+            {
+                if (e.Message.Equals("Access is denied", StringComparison.InvariantCultureIgnoreCase))
+                if (TryAddUrlReservations(uri))
+                    goto run_server;
+                throw;
+            }
+        }
+
+        private static bool TryAddUrlReservations(string uri)
+        {
+            var user = WindowsIdentity.GetCurrent().Name;
+
+            if (!AddUrlAcl(uri.Replace("localhost", "+"), user))
+            {
+                return false;
             }
 
-            using (
-                var host =
-                    new NancyHost(
-                        new HostConfiguration
-                        {
-                            AllowChunkedEncoding = false,
-                            UrlReservations = new UrlReservations {CreateAutomatically = true}
-                        }, uri)
-                )
-            {
-                host.Start();
+            return true;
+        }
 
-                Console.WriteLine("Kibana is now available on " + uri);
-                Console.WriteLine("Press any [Enter] to close the host.");
-                Console.ReadLine();
+        /// <summary>
+        /// Add a url reservation
+        /// </summary>
+        /// <param name="url">Url to add</param>
+        /// <param name="user">User to add the reservation for</param>
+        /// <returns>True if successful, false otherwise.</returns>
+        private static bool AddUrlAcl(string url, string user)
+        {
+            try
+            {
+                var args = string.Format("http add urlacl url={0} user={1}", url, user);
+
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        Verb = "runas",
+                        Arguments = args,
+                        FileName = "netsh",
+                    }
+                };
+
+                process.Start();
+                process.WaitForExit();
+
+                return process.ExitCode == 0;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }
