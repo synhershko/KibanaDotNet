@@ -89,13 +89,13 @@ namespace KibanaHost
             else
                 uri = string.Format("http://{0}:{1}/", Config.Instance.Host, Config.Instance.Port);
 
+            var defaultColor = Console.ForegroundColor;
+            bool aclTried = false;
             run_server:
             try
             {
                 using (WebApp.Start<Startup>(uri))
                 {
-                    var defaultColor = Console.ForegroundColor;
-
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Kibana is now available on " + uri);
                     Console.ForegroundColor = defaultColor;
@@ -106,9 +106,16 @@ namespace KibanaHost
             }
             catch (HttpListenerException e)
             {
-                if (e.Message.Equals("Access is denied", StringComparison.InvariantCultureIgnoreCase))
-                if (TryAddUrlReservations(uri))
-                    goto run_server;
+                if (!aclTried && e.Message.Equals("Access is denied", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    aclTried = true;
+                    Console.WriteLine("Trying to add {0} to the ACL...", uri);
+                    if (TryAddUrlReservations(uri))
+                        goto run_server;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Failed adding URL to the ACL");
+                    Console.ForegroundColor = defaultColor;
+                }
                 throw;
             }
         }
