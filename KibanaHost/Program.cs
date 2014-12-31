@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Security.Principal;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
@@ -104,9 +105,11 @@ namespace KibanaHost
                     Console.ReadLine();
                 }
             }
-            catch (HttpListenerException e)
+            catch (TargetInvocationException tie)
             {
-                if (!aclTried && e.Message.Equals("Access is denied", StringComparison.InvariantCultureIgnoreCase))
+                var e = tie.InnerException;
+                if (!aclTried && e is HttpListenerException
+                    && e.Message.Equals("Access is denied", StringComparison.InvariantCultureIgnoreCase))
                 {
                     aclTried = true;
                     Console.WriteLine("Trying to add {0} to the ACL...", uri);
