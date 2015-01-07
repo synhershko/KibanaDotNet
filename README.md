@@ -1,4 +1,4 @@
-KibanaHost for the .NET platform and Azure
+Kibana 4 host for the .NET platform and Azure
 ===========================================
 
 Making running and hosting of Kibana on Windows platform easier 
